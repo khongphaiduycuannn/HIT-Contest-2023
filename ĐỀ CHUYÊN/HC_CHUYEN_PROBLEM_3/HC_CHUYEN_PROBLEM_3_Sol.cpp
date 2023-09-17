@@ -1,72 +1,63 @@
-#include <bits/stdc++.h>
-
+#include<bits/stdc++.h>
 using namespace std;
-#define int long long
-int n,t,t2;
+
+typedef long long ll;
+
+const ll mod = 1e9 + 7;
+const ll base = 313;
+const ll maxN = 6e3;
+
+ll Hash[maxN], HashR[maxN], Pow[maxN];
+int pref[maxN][maxN];
 string s;
-int64_t ans;
-int Hash[5005];
-int Hash1[5005];
-int Pow[5005];
-int base = 311;
-int mod = 1e9 + 7;
-int getHash(int i, int j)
-{
-    return (Hash[j] - (i - 1 >= 0?Hash[i - 1] * Pow[j - i + 1] : 0) + mod * mod) % mod;
+
+ll get(ll l, ll r) {
+    return (Hash[r] - Hash[l]*Pow[r - l]%mod + mod)%mod;
 }
-int getHash1(int i, int j)
-{
-    return (Hash1[i] - (j + 1 < n?Hash1[j + 1] *Pow[j - i + 1] : 0 ) + mod * mod)% mod;
+
+ll getR(ll l, ll r) {
+    return (HashR[l] - HashR[r]*Pow[r - l]%mod + mod)%mod;
 }
-main()
-{
-    ios_base::sync_with_stdio(false);
-    cin.tie(nullptr);
-    cin>>s;
-    n=s.size();
+
+void init() {
     Pow[0] = 1;
-    for (int i = 1; i <= n; i++)
-    {
-        Pow[i] = Pow[i - 1] * base % mod;
-    }
-    Hash[0] = (s[0] - 'a' + 1) % mod;
-    Hash1[n - 1] = (s[n - 1] - 'a' + 1) % mod;
-    for (int i = 1; i < n; i++)
-    {
-        Hash[i] = (Hash[i - 1] * base + s[i] - 'a' + 1) % mod;
-    }
-    for (int i = n - 2; i >= 0; i--)
-    {
-        Hash1[i] = (Hash1[i + 1] * base + s[i] - 'a' + 1) % mod;
-    }
-    vector<vector<int>>ans(n+5, vector<int>(n + 5, 0));
+    for (ll i = 1; i < maxN; i++)
+        Pow[i] = Pow[i - 1]*base %mod;
 
-    for (int i = 0; i < n; i++)
-    {
-        for (int j = 0; j + i < n; j++)
-        {
-            if (i == 0)
-            {
-                ans[j][j] = 1;
-            }
-            else
-            {
+    ll n = s.size() - 1;
+    for (ll i = 1; i <= n; i++)
+        Hash[i] = (Hash[i - 1]*base%mod + s[i])%mod;
+    for (ll i = n; i >= 1; i--)
+        HashR[i] = (HashR[i + 1]*base%mod + s[i])%mod;
 
-                ans[j][j + i] = ans[j + 1][j + i] + ans[j][j + i - 1] + (getHash(j, j + i) == getHash1(j, j +i)) - (j + 1 <= j + i - 1?ans[j +1][j + i - 1]:0);
-
-            }
+    for (ll i = 1; i <= n; i++)
+        for (ll j = i; j <= n; j++) {
+            if (get(i, j) == getR(i, j))
+                pref[i][j] = pref[i][j - 1] + 1;
+            else pref[i][j] = pref[i][j - 1];
         }
 
-    }
-    int m = 0;
-    cin >> m;
-    for(int i=0; i<m; ++i)
-    {
-        int l, r;
+    for (ll i = 1; i <= n; i++)
+        for (ll j = 1; j <= n; j++)
+            pref[i][j] += pref[i - 1][j];
+}
+
+void solve(){
+    cin >> s;
+    s = ' ' + s;
+    ll q; cin >> q;
+
+    init();
+    while(q--) {
+        ll l, r;
         cin >> l >> r;
-        l--;
-        r--;
-        cout << ans[l][r] << '\n';
+        cout << pref[r][r] - pref[l - 1][r] << "\n";
     }
-    //    Times;
+}
+
+signed main() {
+    ios::sync_with_stdio(0);
+    cin.tie(0); cout.tie(0);
+
+    solve();
 }

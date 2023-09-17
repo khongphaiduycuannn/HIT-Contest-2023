@@ -1,77 +1,84 @@
-#include <bits/stdc++.h>
+#include<bits/stdc++.h>
 using namespace std;
-#define fi first
-#define se second
-#define REP(i, n)  for (int i = 0, _n = (n); i < _n; ++i)
-#define FOR(i, a, b)  for (int i = (a), _b = (b); i <= _b; ++i)
-#define FORD(i, b, a)  for (int i = (b), _a = (a); i >= _a; --i)
-#define PR(a,n) { cerr << #a << " = "; FOR(_,1,n) cout << a[_] << ' '; cout << endl; }
-#define PR0(a,n) { cerr << #a << " = "; REP(_,n) cout << a[_] << ' '; cout << endl; }
-#define debug(x) cerr << #x << " = " << x << endl
-#define TIME  (1.0 * clock() / CLOCKS_PER_SEC)
-#define MASK(i)  (1LL << (i))
-#define FULL(i)  (MASK(i) - 1)
-#define  __builtin_popcount  __builtin_popcountll
-//ifstream file("input.txt");
-//#define cin file
-typedef long long ll;
-typedef unsigned long long ull;
-typedef pair<int, int> pii;
-typedef pair<ll, ll> pll;
-template <class T, class T2> ostream& operator << (ostream &o, pair<T, T2> p)
-{
-    o << p.first << " " << p.second << "\n";
-    return o;
-}
-template <class T> ostream& operator << (ostream &o, vector<T> vt)
-{
-    for (auto it: vt)
-        o << it << " ";
-    o << "\n";
-    return o;
-}
-#define int long long
-const int M = 2e3 + 3, mod = 1e9 + 7;
-pll a[M];
-int pre[M];
-int res;
 
-main()
-{
-    ios_base::sync_with_stdio(0);
-    cin.tie(0);
-    int n;
-    cin >> n;
-    FOR(i, 1, n)
-        cin >> a[i].fi >> a[i].se;
-    sort(a + 1, a + n + 1);
-    for (int i = 1; i <= n; i++)
-        pre[i] = pre[i - 1] + a[i].se;
-    FOR(i, 1, n)
-    {
-        int x = a[i].se;
-        res += x * (x - 1) * (x - 2) / 6 % mod;
-        res %= mod;
-    }
-    FOR(i, 1, n) FOR(j, 1, n)
-    {
-        if (j == i || 2 * a[i].fi <= a[j].fi)
-            continue;
-        res += a[i].se * (a[i].se - 1) / 2 * a[j].se % mod;
-        res %= mod;
-    }
-    FOR(i, 3, n)
-    {
-        FOR (l, 1, i - 2)
-        {
-            pll p = {a[i].fi - a[l].fi, mod};
-            int r = upper_bound(a + l + 1, a + i, p) - a;
-            if (r < i)
-            {
-                res += (pre[i - 1] - pre[r - 1]) * a[i].se % mod * a[l].se % mod;
-                res %= mod;
+typedef long long ll;
+
+const ll mod = 1e9 + 7;
+const ll maxN = 1e5;
+
+ll fac[maxN + 2];
+ll pre[maxN + 2];
+
+bool cmp(pair<ll, ll> x, pair<ll, ll> y) {
+    return x.first < y.first;
+}
+
+ll binPow(ll a, ll x) {
+    if (x == 0)
+        return 1;
+
+    ll tmp = binPow(a, x/2);
+    if (x % 2)
+        return tmp*tmp%mod*a%mod;
+    return tmp*tmp%mod;
+}
+
+ll C(ll k, ll n) {
+    if (k > n)
+        return 0;
+
+    ll t = fac[n];
+    ll m = fac[k]*fac[n - k]%mod;
+    return t*binPow(m, mod - 2)%mod;
+}
+
+void init() {
+    fac[0] = 1;
+    for (ll i = 1; i <= maxN; i++)
+        fac[i] = fac[i - 1]*i%mod;
+}
+
+void solve(){
+    ll t; cin >> t;
+    vector<pair<ll, ll>> a(t);
+    for (auto &x : a)
+        cin >> x.first >> x.second;
+
+    init();
+    sort(a.begin(), a.end(), cmp);
+
+    pre[0] = a[0].second;
+    for (ll i = 1; i < t; i++)
+        pre[i] += pre[i - 1] + a[i].second;
+
+    ll res = 0;
+    for (ll i = 0; i < t; i++) {
+        res = (res + C(3, a[i].second)%mod)%mod;
+
+        for (ll j = 0; j < t; j++)
+            if (i != j && a[j].first < 2*a[i].first)
+                res = (res + C(2, a[i].second)*a[j].second%mod)%mod;
+
+        for (ll j = i + 1; j < t; j++) {
+            ll l = j + 1, r = t - 1;
+            while(l < r) {
+                ll m = l + (r - l + 1)/2;
+                if (a[m].first < a[i].first + a[j].first)
+                    l = m;
+                else r = m - 1;
             }
+
+            if (l == r && a[l].first < a[i].first + a[j].first)
+                res = (res + a[i].second*a[j].second%mod*((pre[l] - pre[j] + mod)%mod)%mod)%mod;
         }
     }
+
     cout << res;
+}
+
+signed main() {
+    ios::sync_with_stdio(0);
+    cin.tie(0); cout.tie(0);
+
+    solve();
 }
